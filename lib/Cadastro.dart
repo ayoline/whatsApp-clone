@@ -120,7 +120,7 @@ class _CadastroState extends State<Cadastro> {
                       fontSize: 15,
                     ),
                   ),
-                )
+                ),
               ],
             ),
           ),

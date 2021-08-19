@@ -8,9 +8,6 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
 
-  // instancia o Banco de dados
-  FirebaseFirestore db = FirebaseFirestore.instance;
-
   runApp(MaterialApp(
     debugShowCheckedModeBanner: false,
     home: Login(),
