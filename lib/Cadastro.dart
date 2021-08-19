@@ -1,17 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:whatsapp/Cadastro.dart';
 
-class Login extends StatefulWidget {
-  const Login({Key? key}) : super(key: key);
+class Cadastro extends StatefulWidget {
+  const Cadastro({Key? key}) : super(key: key);
 
   @override
-  _LoginState createState() => _LoginState();
+  _CadastroState createState() => _CadastroState();
 }
 
-class _LoginState extends State<Login> {
+class _CadastroState extends State<Cadastro> {
+  // Controladores
+  TextEditingController _controllerNome = TextEditingController();
+  TextEditingController _controllerEmail = TextEditingController();
+  TextEditingController _controllerSenha = TextEditingController();
+  String _mensagemErro = "";
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: Text("Cadastro"),
+      ),
       body: Container(
         // define a cor verde de fundo da tela de login
         decoration: BoxDecoration(color: Color(0xff075E54)),
@@ -24,7 +32,7 @@ class _LoginState extends State<Login> {
                 Padding(
                   padding: EdgeInsets.only(bottom: 32),
                   child: Image.asset(
-                    "images/logo.png",
+                    "images/usuario.png",
                     width: 200,
                     height: 150,
                   ),
@@ -32,7 +40,25 @@ class _LoginState extends State<Login> {
                 Padding(
                   padding: EdgeInsets.only(bottom: 8),
                   child: TextField(
+                    controller: _controllerNome,
                     autofocus: true,
+                    keyboardType: TextInputType.text,
+                    style: TextStyle(fontSize: 20),
+                    decoration: InputDecoration(
+                      contentPadding: EdgeInsets.fromLTRB(32, 16, 32, 16),
+                      hintText: "Nome",
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(32),
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.only(bottom: 8),
+                  child: TextField(
+                    controller: _controllerEmail,
                     keyboardType: TextInputType.emailAddress,
                     style: TextStyle(fontSize: 20),
                     decoration: InputDecoration(
@@ -47,6 +73,8 @@ class _LoginState extends State<Login> {
                   ),
                 ),
                 TextField(
+                  controller: _controllerSenha,
+                  obscureText: true,
                   keyboardType: TextInputType.text,
                   style: TextStyle(fontSize: 20),
                   decoration: InputDecoration(
@@ -69,9 +97,11 @@ class _LoginState extends State<Login> {
                         borderRadius: BorderRadius.circular(32),
                       ),
                     ),
-                    onPressed: () {},
+                    onPressed: () {
+                      _validarCampos();
+                    },
                     child: Text(
-                      "Entrar",
+                      "Cadastrar",
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 20,
@@ -80,21 +110,12 @@ class _LoginState extends State<Login> {
                   ),
                 ),
                 Center(
-                  child: GestureDetector(
-                    child: Text(
-                      "Não tem conta? cadastre-se!",
-                      style: TextStyle(
-                        color: Colors.white,
-                      ),
+                  child: Text(
+                    _mensagemErro,
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontSize: 15,
                     ),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => Cadastro(),
-                        ),
-                      );
-                    },
                   ),
                 )
               ],
@@ -103,5 +124,38 @@ class _LoginState extends State<Login> {
         ),
       ),
     );
+  }
+
+  _cadastrarUsuario() {
+    setState(() {
+      _mensagemErro = "sucesso!!";
+    });
+  }
+
+  _validarCampos() {
+    // Recuperar os dados dos campos
+    String nome = _controllerNome.text;
+    String email = _controllerEmail.text;
+    String senha = _controllerSenha.text;
+
+    if (nome.length >= 3) {
+      if (email.isNotEmpty && email.contains("@")) {
+        if (senha.isNotEmpty && senha.length >= 6) {
+          _cadastrarUsuario();
+        } else {
+          setState(() {
+            _mensagemErro = "Senha precisa ter no mínimo 6 caracteres";
+          });
+        }
+      } else {
+        setState(() {
+          _mensagemErro = "Preencha o email, utilizando @";
+        });
+      }
+    } else {
+      setState(() {
+        _mensagemErro = "Nome precisa ter mais de 3 caracteres";
+      });
+    }
   }
 }
