@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:whatsapp/HomePage.dart';
+import 'package:whatsapp/model/Usuario.dart';
 
 class Cadastro extends StatefulWidget {
   const Cadastro({Key? key}) : super(key: key);
@@ -126,9 +129,27 @@ class _CadastroState extends State<Cadastro> {
     );
   }
 
-  _cadastrarUsuario() {
-    setState(() {
-      _mensagemErro = "sucesso!!";
+  _cadastrarUsuario(Usuario usuario) {
+    FirebaseAuth auth = FirebaseAuth.instance;
+
+    auth
+        .createUserWithEmailAndPassword(
+      email: usuario.email,
+      password: usuario.senha,
+    )
+        .then((firebaseUser) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HomePage(),
+        ),
+      );
+    }).catchError((error) {
+      print("error app: " + error.toString());
+      setState(() {
+        _mensagemErro =
+            "Erro ao cadastrar usuario. Verifique os campos e tente novamente ";
+      });
     });
   }
 
@@ -141,7 +162,12 @@ class _CadastroState extends State<Cadastro> {
     if (nome.length >= 3) {
       if (email.isNotEmpty && email.contains("@")) {
         if (senha.isNotEmpty && senha.length >= 6) {
-          _cadastrarUsuario();
+          Usuario usuario = Usuario();
+          usuario.nome = nome;
+          usuario.email = email;
+          usuario.senha = senha;
+
+          _cadastrarUsuario(usuario);
         } else {
           setState(() {
             _mensagemErro = "Senha precisa ter no mínimo 6 caracteres";
