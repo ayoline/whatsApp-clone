@@ -107,7 +107,7 @@ class _LoginState extends State<Login> {
                       ),
                     ),
                     onTap: () {
-                      Navigator.push(
+                      Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
                           builder: (context) => Cadastro(),
@@ -139,8 +139,9 @@ class _LoginState extends State<Login> {
   Future _verificaUsuarioLogado() async {
     FirebaseAuth auth = FirebaseAuth.instance;
 
+    //auth.signOut();
     if (auth.currentUser != null) {
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => HomePage(),
@@ -182,7 +183,7 @@ class _LoginState extends State<Login> {
       password: usuario.senha,
     )
         .then((firebaseUser) {
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => HomePage(),

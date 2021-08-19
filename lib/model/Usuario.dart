@@ -7,6 +7,14 @@ class Usuario {
 
   Usuario();
 
+  Map<String, dynamic> toMap() {
+    Map<String, dynamic> map = {
+      "nome": this.nome,
+      "email": this.email,
+    };
+    return map;
+  }
+
   get nome => this._nome;
 
   set nome(value) => this._nome = value;
