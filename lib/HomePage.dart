@@ -1,8 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:whatsapp/Login.dart';
 import 'package:whatsapp/telas/AbaContatos.dart';
 import 'package:whatsapp/telas/AbaConversas.dart';
+import 'RouteGenerator.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -60,7 +60,6 @@ class _HomePageState extends State<HomePage>
             ),
           ],
         ),
-        centerTitle: true,
         actions: [
           Theme(
             data: Theme.of(context).copyWith(
@@ -106,9 +105,10 @@ class _HomePageState extends State<HomePage>
     FirebaseAuth auth = FirebaseAuth.instance;
     await auth.signOut();
 
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (context) => Login()),
-      (route) => false,
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      RouteGenerator.ROTA_LOGIN,
+      (_) => false,
     );
   }
 
@@ -124,23 +124,3 @@ class _HomePageState extends State<HomePage>
     }
   }
 }
-
-
-
-
-/*
-  void onSelected(BuildContext context, int item) {
-    switch (item) {
-      case 0:
-        print("Clicado em configurações");
-        break;
-      case 1:
-        print("Clicado em deslogar");
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => Login()),
-          (route) => false,
-        );
-    }
-  }
-}
-*/

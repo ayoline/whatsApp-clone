@@ -1,9 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:whatsapp/Cadastro.dart';
+import 'package:whatsapp/RouteGenerator.dart';
 import 'package:whatsapp/model/Usuario.dart';
-
-import 'HomePage.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -107,11 +105,8 @@ class _LoginState extends State<Login> {
                       ),
                     ),
                     onTap: () {
-                      WidgetsBinding.instance?.addPostFrameCallback((_) {
-                        Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(builder: (context) => Cadastro()),
-                            (route) => false);
-                      });
+                      Navigator.pushNamed(
+                          context, RouteGenerator.ROTA_CADASTRO);
                     },
                   ),
                 ),
@@ -140,10 +135,13 @@ class _LoginState extends State<Login> {
 
     //auth.signOut();
     if (auth.currentUser != null) {
+      // Foi usado essa função pois o App travava se não usasse ela para o Navigator
       WidgetsBinding.instance?.addPostFrameCallback((_) {
-        Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => HomePage()),
-            (route) => false);
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          RouteGenerator.ROTA_HOME,
+          (_) => false,
+        );
       });
     }
   }
@@ -181,11 +179,11 @@ class _LoginState extends State<Login> {
       password: usuario.senha,
     )
         .then((firebaseUser) {
-      WidgetsBinding.instance?.addPostFrameCallback((_) {
-        Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => HomePage()),
-            (route) => false);
-      });
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        RouteGenerator.ROTA_HOME,
+        (_) => false,
+      );
     }).catchError((error) {
       setState(() {
         _mensagemErro =

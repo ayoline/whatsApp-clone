@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:whatsapp/HomePage.dart';
 import 'package:whatsapp/model/Usuario.dart';
+import 'RouteGenerator.dart';
 
 class Cadastro extends StatefulWidget {
   const Cadastro({Key? key}) : super(key: key);
@@ -145,11 +145,12 @@ class _CadastroState extends State<Cadastro> {
           .collection("whatsappUsers")
           .doc(auth.currentUser!.uid)
           .set(usuario.toMap());
-      WidgetsBinding.instance?.addPostFrameCallback((_) {
-        Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => HomePage()),
-            (route) => false);
-      });
+
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        RouteGenerator.ROTA_HOME,
+        (_) => false,
+      );
     }).catchError((error) {
       print("error app: " + error.toString());
       setState(() {
