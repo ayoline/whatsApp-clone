@@ -145,13 +145,11 @@ class _CadastroState extends State<Cadastro> {
           .collection("whatsappUsers")
           .doc(auth.currentUser!.uid)
           .set(usuario.toMap());
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => HomePage(),
-        ),
-      );
+      WidgetsBinding.instance?.addPostFrameCallback((_) {
+        Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => HomePage()),
+            (route) => false);
+      });
     }).catchError((error) {
       print("error app: " + error.toString());
       setState(() {

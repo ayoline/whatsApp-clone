@@ -107,12 +107,11 @@ class _LoginState extends State<Login> {
                       ),
                     ),
                     onTap: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => Cadastro(),
-                        ),
-                      );
+                      WidgetsBinding.instance?.addPostFrameCallback((_) {
+                        Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(builder: (context) => Cadastro()),
+                            (route) => false);
+                      });
                     },
                   ),
                 ),
@@ -141,12 +140,11 @@ class _LoginState extends State<Login> {
 
     //auth.signOut();
     if (auth.currentUser != null) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => HomePage(),
-        ),
-      );
+      WidgetsBinding.instance?.addPostFrameCallback((_) {
+        Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => HomePage()),
+            (route) => false);
+      });
     }
   }
 
@@ -183,12 +181,11 @@ class _LoginState extends State<Login> {
       password: usuario.senha,
     )
         .then((firebaseUser) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => HomePage(),
-        ),
-      );
+      WidgetsBinding.instance?.addPostFrameCallback((_) {
+        Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => HomePage()),
+            (route) => false);
+      });
     }).catchError((error) {
       setState(() {
         _mensagemErro =
