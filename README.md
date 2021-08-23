@@ -8,6 +8,8 @@
 - firebase_core: ^1.5.0
 - firebase_auth: ^3.0.2
 - firebase_storage: ^10.0.2
+- image_picker: ^0.8.3+2
+
 
 
 

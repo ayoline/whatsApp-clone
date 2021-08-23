@@ -115,8 +115,10 @@ class _HomePageState extends State<HomePage>
   void onSelected(BuildContext context, int item) {
     switch (item) {
       case 0:
-        print("click: configurações");
-
+        Navigator.pushNamed(
+          context,
+          RouteGenerator.ROTA_CONFIG,
+        );
         break;
       case 1:
         _deslogarUsuario();
