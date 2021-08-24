@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:path/path.dart';
 
 class Configuracoes extends StatefulWidget {
@@ -75,6 +76,11 @@ class _ConfiguracoesState extends State<Configuracoes> {
                     autofocus: true,
                     keyboardType: TextInputType.text,
                     style: TextStyle(fontSize: 20),
+                    /*
+                    onChanged: (texto) {
+                      _atualizarNomeFirestore(texto);
+                    },
+                    */
                     decoration: InputDecoration(
                       contentPadding: EdgeInsets.fromLTRB(32, 16, 32, 16),
                       hintText: "Nome",
@@ -96,7 +102,9 @@ class _ConfiguracoesState extends State<Configuracoes> {
                         borderRadius: BorderRadius.circular(32),
                       ),
                     ),
-                    onPressed: () {},
+                    onPressed: () {
+                      _atualizarNomeFirestore();
+                    },
                     child: Text(
                       "Salvar",
                       style: TextStyle(
@@ -114,10 +122,23 @@ class _ConfiguracoesState extends State<Configuracoes> {
     );
   }
 
-  _recuperarDadosUsuario() {
+  _recuperarDadosUsuario() async {
     FirebaseAuth auth = FirebaseAuth.instance;
     final usuarioLogado = auth.currentUser!;
     _idUsuarioLogado = usuarioLogado.uid;
+
+    FirebaseFirestore db = FirebaseFirestore.instance;
+    DocumentSnapshot snapshot =
+        await db.collection("whatsappUsers").doc(_idUsuarioLogado).get();
+
+    Map<String, dynamic>? dados = snapshot.data() as Map<String, dynamic>?;
+    _controllerNome.text = dados!["nome"];
+
+    setState(() {
+      if (dados["urlImagem"] != null) {
+        _urlImagemRecuperada = dados["urlImagem"];
+      }
+    });
   }
 
   Future _uploadImagem() async {
@@ -139,9 +160,28 @@ class _ConfiguracoesState extends State<Configuracoes> {
   Future _recuperarUrlImagem(TaskSnapshot snapshot) async {
     String url = await snapshot.ref.getDownloadURL();
 
+    _atualizarUrlImagemFirestore(url);
+
     setState(() {
       _urlImagemRecuperada = url;
     });
+  }
+
+  _atualizarNomeFirestore() {
+    String nome = _controllerNome.text;
+    FirebaseFirestore db = FirebaseFirestore.instance;
+
+    Map<String, dynamic> dadosAtualizar = {"nome": nome};
+
+    db.collection("whatsappUsers").doc(_idUsuarioLogado).update(dadosAtualizar);
+  }
+
+  _atualizarUrlImagemFirestore(String url) {
+    FirebaseFirestore db = FirebaseFirestore.instance;
+
+    Map<String, dynamic> dadosAtualizar = {"urlImagem": url};
+
+    db.collection("whatsappUsers").doc(_idUsuarioLogado).update(dadosAtualizar);
   }
 
   Future _recuperarImagem(bool daCamera) async {
