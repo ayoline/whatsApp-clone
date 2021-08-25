@@ -4,6 +4,7 @@ class Usuario {
   String? _nome;
   String? _email;
   String? _senha;
+  String? _urlImagem;
 
   Usuario();
 
@@ -26,4 +27,8 @@ class Usuario {
   get senha => this._senha;
 
   set senha(value) => this._senha = value;
+
+  get urlImagem => this._urlImagem;
+
+  set urlImagem(value) => this._urlImagem = value;
 }

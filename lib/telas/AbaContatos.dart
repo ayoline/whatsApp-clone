@@ -1,5 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:whatsapp/model/Conversa.dart';
+import 'package:whatsapp/model/Usuario.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AbaContatos extends StatefulWidget {
   const AbaContatos({Key? key}) : super(key: key);
@@ -9,57 +12,88 @@ class AbaContatos extends StatefulWidget {
 }
 
 class _AbaContatosState extends State<AbaContatos> {
-  List<Conversa> listaConversas = [
-    Conversa(
-      "Fulana de tal",
-      "Olá mundo",
-      "https://firebasestorage.googleapis.com/v0/b/velvety-decoder-312222.appspot.com/o/perfil%2Fperfil1.jpg?alt=media&token=4a029a80-587c-434b-bb56-2cc0c8a9a14d",
-    ),
-    Conversa(
-      "Ciclano de tal",
-      "Olá mundo",
-      "https://firebasestorage.googleapis.com/v0/b/velvety-decoder-312222.appspot.com/o/perfil%2Fperfil2.jpg?alt=media&token=2be22532-9972-4b52-be32-c8b530c136eb",
-    ),
-    Conversa(
-      "Beltrano de tal",
-      "Olá mundo",
-      "https://firebasestorage.googleapis.com/v0/b/velvety-decoder-312222.appspot.com/o/perfil%2Fperfil3.jpg?alt=media&token=ff68ac21-1c65-4c17-a030-9b4262cca224",
-    ),
-    Conversa(
-      "Fulano de tal",
-      "Olá mundo",
-      "https://firebasestorage.googleapis.com/v0/b/velvety-decoder-312222.appspot.com/o/perfil%2Fperfil4.jpg?alt=media&token=20ddc400-aa58-4866-b939-e131cdd71872",
-    ),
-    Conversa(
-      "Beltrano de tal",
-      "Olá mundo",
-      "https://firebasestorage.googleapis.com/v0/b/velvety-decoder-312222.appspot.com/o/perfil%2Fperfil5.jpg?alt=media&token=1292de44-2bcd-4de2-810f-7fbe0e64b0b8",
-    ),
-  ];
+  late String _idUsuarioLogado;
+  late String _emailUsuarioLogado;
+
+  @override
+  void initState() {
+    super.initState();
+    _recuperarDadosUsuario();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: listaConversas.length,
-      itemBuilder: (context, index) {
-        Conversa conversa = listaConversas[index];
+    return FutureBuilder<List<Usuario>>(
+      future: _recuperarContatos(),
+      builder: (context, snapshot) {
+        switch (snapshot.connectionState) {
+          case ConnectionState.none:
+          case ConnectionState.waiting:
+            return Center(
+              child: Column(
+                children: [
+                  Text("Carregando contatos"),
+                  CircularProgressIndicator(),
+                ],
+              ),
+            );
+          case ConnectionState.active:
+          case ConnectionState.done:
+            return ListView.builder(
+              itemCount: snapshot.data!.length,
+              itemBuilder: (_, index) {
+                List<Usuario>? listaItens = snapshot.data;
+                Usuario usuario = listaItens![index];
 
-        return ListTile(
-          contentPadding: EdgeInsets.fromLTRB(16, 8, 16, 8),
-          leading: CircleAvatar(
-            maxRadius: 30,
-            backgroundColor: Colors.grey,
-            backgroundImage: NetworkImage(conversa.caminhoFoto),
-          ),
-          title: Text(
-            conversa.nome,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
-          ),
-        );
+                return ListTile(
+                  contentPadding: EdgeInsets.fromLTRB(16, 8, 16, 8),
+                  leading: CircleAvatar(
+                      maxRadius: 30,
+                      backgroundColor: Colors.grey,
+                      backgroundImage: usuario.urlImagem != null
+                          ? NetworkImage(usuario.urlImagem!)
+                          : null),
+                  title: Text(
+                    usuario.nome,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                );
+              },
+            );
+        }
       },
     );
+  }
+
+  Future<List<Usuario>> _recuperarContatos() async {
+    FirebaseFirestore db = FirebaseFirestore.instance;
+
+    QuerySnapshot querySnapshot = await db.collection("whatsappUsers").get();
+
+    List<Usuario> listaUsuarios = List<Usuario>.empty(growable: true);
+    for (DocumentSnapshot item in querySnapshot.docs) {
+      var dados = item.data() as Map<String, dynamic>?;
+
+      // Serve para pular o for no usuario que está logado
+      if (dados!["email"] == _emailUsuarioLogado) continue;
+
+      Usuario usuario = Usuario();
+      usuario.email = dados["email"];
+      usuario.nome = dados["nome"];
+      usuario.urlImagem = dados["urlImagem"];
+
+      listaUsuarios.add(usuario);
+    }
+    return listaUsuarios;
+  }
+
+  _recuperarDadosUsuario() async {
+    FirebaseAuth auth = FirebaseAuth.instance;
+    final usuarioLogado = auth.currentUser!;
+    _idUsuarioLogado = usuarioLogado.uid;
+    _emailUsuarioLogado = usuarioLogado.email!;
   }
 }
