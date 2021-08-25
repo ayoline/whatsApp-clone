@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:whatsapp/RouteGenerator.dart';
 import 'package:whatsapp/model/Conversa.dart';
 import 'package:whatsapp/model/Usuario.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -46,6 +47,10 @@ class _AbaContatosState extends State<AbaContatos> {
                 Usuario usuario = listaItens![index];
 
                 return ListTile(
+                  onTap: () {
+                    Navigator.pushNamed(context, RouteGenerator.ROTA_MENSAGENS,
+                        arguments: usuario);
+                  },
                   contentPadding: EdgeInsets.fromLTRB(16, 8, 16, 8),
                   leading: CircleAvatar(
                       maxRadius: 30,
