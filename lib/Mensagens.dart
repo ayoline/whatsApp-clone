@@ -1,4 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:whatsapp/model/Mensagem.dart';
 import 'package:whatsapp/model/Usuario.dart';
 
 // ignore: must_be_immutable
@@ -26,6 +29,14 @@ class _MensagensState extends State<Mensagens> {
   ];
 
   TextEditingController _controllerMensagem = TextEditingController();
+  String? _idUsuarioLogado;
+  String? _idUsuarioDestinatario;
+
+  @override
+  void initState() {
+    super.initState();
+    _recuperarDadosUsuario();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -107,7 +118,20 @@ class _MensagensState extends State<Mensagens> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.contato.nome),
+        title: Row(
+          children: [
+            CircleAvatar(
+                maxRadius: 20,
+                backgroundColor: Colors.grey,
+                backgroundImage: widget.contato.urlImagem != null
+                    ? NetworkImage(widget.contato.urlImagem!)
+                    : null),
+            Padding(
+              padding: EdgeInsets.only(left: 10),
+              child: Text(widget.contato.nome),
+            ),
+          ],
+        ),
       ),
       body: Container(
         width: MediaQuery.of(context).size.width,
@@ -131,7 +155,41 @@ class _MensagensState extends State<Mensagens> {
     );
   }
 
-  _enviarMensagem() {}
+  _enviarMensagem() {
+    String textoMensagem = _controllerMensagem.text;
+    if (textoMensagem.isNotEmpty) {
+      Mensagem mensagem = Mensagem();
+      mensagem.idUsuario = _idUsuarioLogado;
+      mensagem.mensagem = textoMensagem;
+      mensagem.urlImagem = "";
+      mensagem.tipo = "texto";
+
+      _salvarMensagem(_idUsuarioLogado!, _idUsuarioDestinatario!, mensagem);
+    }
+  }
+
+  _salvarMensagem(
+      String idRemetente, String idDestinatario, Mensagem msg) async {
+    FirebaseFirestore db = FirebaseFirestore.instance;
+
+    await db
+        .collection("mensagens")
+        .doc(idRemetente)
+        .collection(idDestinatario)
+        .add(msg.toMap());
+
+    // Limpar texto
+    setState(() {
+      _controllerMensagem.clear();
+    });
+  }
 
   _enviarFoto() {}
+
+  _recuperarDadosUsuario() async {
+    FirebaseAuth auth = FirebaseAuth.instance;
+    final usuarioLogado = auth.currentUser!;
+    _idUsuarioLogado = usuarioLogado.uid;
+    _idUsuarioDestinatario = widget.contato.idUsuario;
+  }
 }

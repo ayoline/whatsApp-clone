@@ -23,7 +23,7 @@ class _HomePageState extends State<HomePage>
   @override
   void initState() {
     super.initState();
-
+    _verificaUsuarioLogado();
     _tabController = TabController(
       length: 2,
       vsync: this,
@@ -99,6 +99,22 @@ class _HomePageState extends State<HomePage>
         ],
       ),
     );
+  }
+
+  Future _verificaUsuarioLogado() async {
+    FirebaseAuth auth = FirebaseAuth.instance;
+
+    //auth.signOut();
+    if (auth.currentUser == null) {
+      // Foi usado essa função pois o App travava se não usasse ela para o Navigator
+      WidgetsBinding.instance?.addPostFrameCallback((_) {
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          RouteGenerator.ROTA_LOGIN,
+          (_) => false,
+        );
+      });
+    }
   }
 
   _deslogarUsuario() async {
