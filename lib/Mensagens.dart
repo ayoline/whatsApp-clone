@@ -1,8 +1,11 @@
 import 'dart:async';
-
+import 'dart:io';
+import 'package:path/path.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:whatsapp/model/Mensagem.dart';
 import 'package:whatsapp/model/Usuario.dart';
 
@@ -17,23 +20,13 @@ class Mensagens extends StatefulWidget {
 }
 
 class _MensagensState extends State<Mensagens> {
-  List<String> listaMensagens = [
-    "teste 1,teste 1,teste 1,teste 1,teste 1,teste 1,teste 1,teste 1,teste 1,teste 1,teste 1,teste 1,",
-    "teste 2,teste 2,teste 2,teste 2,teste 2,teste 2,teste 2,teste 2,teste 2,teste 2,teste 2,teste 2,",
-    "teste 3",
-    "teste 4",
-    "teste 5",
-    "teste 6",
-    "teste 7",
-    "teste 8",
-    "teste 9",
-    "teste 10",
-  ];
-
   TextEditingController _controllerMensagem = TextEditingController();
   String? _idUsuarioLogado;
   String? _idUsuarioDestinatario;
   FirebaseFirestore db = FirebaseFirestore.instance;
+  ImagePicker imagePicker = ImagePicker();
+  File? imagemSelecionada;
+  UploadTask? task;
 
   @override
   void initState() {
@@ -64,7 +57,30 @@ class _MensagensState extends State<Mensagens> {
                     borderRadius: BorderRadius.circular(32),
                   ),
                   prefixIcon: IconButton(
-                    onPressed: _enviarFoto,
+                    onPressed: () {
+                      showDialog<String>(
+                        context: context,
+                        builder: (BuildContext context) => AlertDialog(
+                          title: const Text('Tipo Imagem'),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () {
+                                _recuperarImagem(true);
+                                Navigator.pop(context, 'Camera');
+                              },
+                              child: const Text('Camera'),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                _recuperarImagem(false);
+                                Navigator.pop(context, 'Galeria');
+                              },
+                              child: const Text('Galeria'),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
                     icon: Icon(Icons.camera_alt),
                   ),
                 ),
@@ -144,10 +160,12 @@ class _MensagensState extends State<Mensagens> {
                               borderRadius:
                                   BorderRadius.all(Radius.circular(8)),
                             ),
-                            child: Text(
-                              item["mensagem"],
-                              style: TextStyle(fontSize: 18),
-                            ),
+                            child: item["tipo"] == "texto"
+                                ? Text(
+                                    item["mensagem"],
+                                    style: TextStyle(fontSize: 18),
+                                  )
+                                : Image.network(item["urlImagem"]),
                           ),
                         ),
                       );
@@ -156,41 +174,6 @@ class _MensagensState extends State<Mensagens> {
             }
         }
       },
-    );
-
-    var listView = Expanded(
-      child: ListView.builder(
-          itemCount: listaMensagens.length,
-          itemBuilder: (context, indice) {
-            double larguraContainer = MediaQuery.of(context).size.width * 0.8;
-
-            // Define cores e alinhamentos
-            Alignment alinhamento = Alignment.centerRight;
-            Color cor = Color(0xffd2ffa5);
-            if (indice % 2 == 0) {
-              alinhamento = Alignment.centerLeft;
-              cor = Colors.white;
-            }
-
-            return Align(
-              alignment: alinhamento,
-              child: Padding(
-                padding: EdgeInsets.all(6),
-                child: Container(
-                  width: larguraContainer,
-                  padding: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: cor,
-                    borderRadius: BorderRadius.all(Radius.circular(8)),
-                  ),
-                  child: Text(
-                    listaMensagens[indice],
-                    style: TextStyle(fontSize: 18),
-                  ),
-                ),
-              ),
-            );
-          }),
     );
 
     return Scaffold(
@@ -262,7 +245,61 @@ class _MensagensState extends State<Mensagens> {
         .add(msg.toMap());
   }
 
-  _enviarFoto() {}
+  Future _recuperarImagem(bool daCamera) async {
+    final XFile? imagemTemporaria;
+
+    if (daCamera) {
+      // camera
+      imagemTemporaria = await imagePicker.pickImage(
+        source: ImageSource.camera,
+      );
+    } else {
+      // galeria
+      imagemTemporaria = await imagePicker.pickImage(
+        source: ImageSource.gallery,
+      );
+    }
+
+    setState(() {
+      if (imagemTemporaria != null) {
+        imagemSelecionada = File(imagemTemporaria.path);
+        _uploadImagem();
+      }
+    });
+  }
+
+  Future _uploadImagem() async {
+    if (imagemSelecionada == null) return;
+
+    String nomeImagem = DateTime.now().microsecondsSinceEpoch.toString();
+    final destination = "mensagens/$_idUsuarioLogado/$nomeImagem.jpg";
+
+    final ref = FirebaseStorage.instance.ref(destination);
+    task = ref.putFile(imagemSelecionada!);
+
+    if (task == null) return;
+
+    final snapshot = await task!.whenComplete(() {});
+
+    _recuperarUrlImagem(snapshot);
+  }
+
+  Future _recuperarUrlImagem(TaskSnapshot snapshot) async {
+    String url = await snapshot.ref.getDownloadURL();
+
+    Mensagem mensagem = Mensagem();
+    mensagem.idUsuario = _idUsuarioLogado;
+    mensagem.mensagem = "";
+    mensagem.urlImagem = url;
+    mensagem.tipo = "imagem";
+    mensagem.time = DateTime.now();
+
+    // Salvar mensagem para remetente
+    _salvarMensagem(_idUsuarioLogado!, _idUsuarioDestinatario!, mensagem);
+
+    // Salvar mensagem para o destinátario
+    _salvarMensagem(_idUsuarioDestinatario!, _idUsuarioLogado!, mensagem);
+  }
 
   _recuperarDadosUsuario() async {
     FirebaseAuth auth = FirebaseAuth.instance;
