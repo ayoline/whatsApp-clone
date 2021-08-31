@@ -3,11 +3,13 @@ class Mensagem {
   String? _mensagem;
   String? _urlImagem;
   String? _tipo;
+  DateTime? _time;
 
   Mensagem();
 
   Map<String, dynamic> toMap() {
     Map<String, dynamic> map = {
+      "time": this.time,
       "idUsuario": this.idUsuario,
       "mensagem": this.mensagem,
       "urlImagem": this.urlImagem,
@@ -15,6 +17,10 @@ class Mensagem {
     };
     return map;
   }
+
+  DateTime? get time => this._time;
+
+  set time(DateTime? value) => this._time = value;
 
   get idUsuario => this._idUsuario;
 

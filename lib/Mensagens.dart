@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -31,6 +33,7 @@ class _MensagensState extends State<Mensagens> {
   TextEditingController _controllerMensagem = TextEditingController();
   String? _idUsuarioLogado;
   String? _idUsuarioDestinatario;
+  FirebaseFirestore db = FirebaseFirestore.instance;
 
   @override
   void initState() {
@@ -79,6 +82,80 @@ class _MensagensState extends State<Mensagens> {
           ),
         ],
       ),
+    );
+
+    var stream = StreamBuilder(
+      stream: db
+          .collection("mensagens")
+          .doc(_idUsuarioLogado)
+          .collection(_idUsuarioDestinatario!)
+          .orderBy("time", descending: false)
+          .snapshots(),
+      builder: (context, snapshot) {
+        switch (snapshot.connectionState) {
+          case ConnectionState.none:
+          case ConnectionState.waiting:
+            return Center(
+              child: Column(
+                children: [
+                  Text("Carregando mensagens"),
+                  CircularProgressIndicator(),
+                ],
+              ),
+            );
+          case ConnectionState.active:
+          case ConnectionState.done:
+            QuerySnapshot? querySnapshot =
+                snapshot.data as QuerySnapshot<Object?>?;
+            if (snapshot.hasError) {
+              return Expanded(
+                child: Text("Erro ao carregar os dados!"),
+              );
+            } else {
+              return Expanded(
+                child: ListView.builder(
+                    itemCount: querySnapshot!.docs.length,
+                    itemBuilder: (context, indice) {
+                      // Recupera mensagem
+                      List<DocumentSnapshot> mensagens =
+                          querySnapshot.docs.toList();
+                      DocumentSnapshot item = mensagens[indice];
+
+                      double larguraContainer =
+                          MediaQuery.of(context).size.width * 0.8;
+
+                      // Define cores e alinhamentos
+                      Alignment alinhamento = Alignment.centerRight;
+                      Color cor = Color(0xffd2ffa5);
+                      if (_idUsuarioLogado != item["idUsuario"]) {
+                        alinhamento = Alignment.centerLeft;
+                        cor = Colors.white;
+                      }
+
+                      return Align(
+                        alignment: alinhamento,
+                        child: Padding(
+                          padding: EdgeInsets.all(6),
+                          child: Container(
+                            width: larguraContainer,
+                            padding: EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: cor,
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(8)),
+                            ),
+                            child: Text(
+                              item["mensagem"],
+                              style: TextStyle(fontSize: 18),
+                            ),
+                          ),
+                        ),
+                      );
+                    }),
+              );
+            }
+        }
+      },
     );
 
     var listView = Expanded(
@@ -146,7 +223,7 @@ class _MensagensState extends State<Mensagens> {
           padding: EdgeInsets.all(8),
           child: Column(
             children: [
-              listView,
+              stream,
               caixaMensagem,
             ],
           ),
@@ -163,25 +240,26 @@ class _MensagensState extends State<Mensagens> {
       mensagem.mensagem = textoMensagem;
       mensagem.urlImagem = "";
       mensagem.tipo = "texto";
+      mensagem.time = DateTime.now();
 
+      // Salvar mensagem para remetente
       _salvarMensagem(_idUsuarioLogado!, _idUsuarioDestinatario!, mensagem);
+
+      // Salvar mensagem para o destinátario
+      _salvarMensagem(_idUsuarioDestinatario!, _idUsuarioLogado!, mensagem);
     }
   }
 
   _salvarMensagem(
       String idRemetente, String idDestinatario, Mensagem msg) async {
-    FirebaseFirestore db = FirebaseFirestore.instance;
+    // Limpar texto
+    _controllerMensagem.clear();
 
     await db
         .collection("mensagens")
         .doc(idRemetente)
         .collection(idDestinatario)
         .add(msg.toMap());
-
-    // Limpar texto
-    setState(() {
-      _controllerMensagem.clear();
-    });
   }
 
   _enviarFoto() {}
