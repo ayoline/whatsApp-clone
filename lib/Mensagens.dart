@@ -27,6 +27,8 @@ class _MensagensState extends State<Mensagens> {
   ImagePicker imagePicker = ImagePicker();
   File? imagemSelecionada;
   UploadTask? task;
+  final _controller = StreamController<QuerySnapshot>.broadcast();
+  ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -104,12 +106,7 @@ class _MensagensState extends State<Mensagens> {
     );
 
     var stream = StreamBuilder(
-      stream: db
-          .collection("mensagens")
-          .doc(_idUsuarioLogado)
-          .collection(_idUsuarioDestinatario!)
-          .orderBy("time", descending: false)
-          .snapshots(),
+      stream: _controller.stream,
       builder: (context, snapshot) {
         switch (snapshot.connectionState) {
           case ConnectionState.none:
@@ -131,6 +128,7 @@ class _MensagensState extends State<Mensagens> {
             } else {
               return Expanded(
                 child: ListView.builder(
+                    controller: _scrollController,
                     itemCount: querySnapshot!.docs.length,
                     itemBuilder: (context, indice) {
                       // Recupera mensagem
@@ -332,5 +330,23 @@ class _MensagensState extends State<Mensagens> {
     final usuarioLogado = auth.currentUser!;
     _idUsuarioLogado = usuarioLogado.uid;
     _idUsuarioDestinatario = widget.contato.idUsuario;
+
+    _adicionarListenerMensagens();
+  }
+
+  Stream<QuerySnapshot>? _adicionarListenerMensagens() {
+    final stream = db
+        .collection("mensagens")
+        .doc(_idUsuarioLogado)
+        .collection(_idUsuarioDestinatario!)
+        .orderBy("time", descending: false)
+        .snapshots();
+
+    stream.listen((dados) {
+      _controller.add(dados);
+      Timer(Duration(seconds: 1), () {
+        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+      });
+    });
   }
 }
