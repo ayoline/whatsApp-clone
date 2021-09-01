@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 class Usuario {
   String? _idUsuario;
   String? _nome;

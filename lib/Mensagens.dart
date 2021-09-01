@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:path/path.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:whatsapp/model/Conversa.dart';
 import 'package:whatsapp/model/Mensagem.dart';
 import 'package:whatsapp/model/Usuario.dart';
 
@@ -124,9 +124,7 @@ class _MensagensState extends State<Mensagens> {
             QuerySnapshot? querySnapshot =
                 snapshot.data as QuerySnapshot<Object?>?;
             if (snapshot.hasError) {
-              return Expanded(
-                child: Text("Erro ao carregar os dados!"),
-              );
+              return Text("Erro ao carregar os dados!");
             } else {
               return Expanded(
                 child: ListView.builder(
@@ -230,7 +228,32 @@ class _MensagensState extends State<Mensagens> {
 
       // Salvar mensagem para o destinátario
       _salvarMensagem(_idUsuarioDestinatario!, _idUsuarioLogado!, mensagem);
+
+      // Salvar conversa
+      _salvarConversa(mensagem);
     }
+  }
+
+  _salvarConversa(Mensagem msg) {
+    // Salvar conversa remetente
+    Conversa cRemetente = Conversa();
+    cRemetente.idRemetente = _idUsuarioLogado;
+    cRemetente.idDestinatario = _idUsuarioDestinatario;
+    cRemetente.mensagem = msg.mensagem;
+    cRemetente.nome = widget.contato.nome;
+    cRemetente.caminhoFoto = widget.contato.urlImagem;
+    cRemetente.tipoMensagem = msg.tipo;
+    cRemetente.salvar();
+
+    // Salvar conversa para destinatário
+    Conversa cDestinatario = Conversa();
+    cDestinatario.idRemetente = _idUsuarioDestinatario;
+    cDestinatario.idDestinatario = _idUsuarioLogado;
+    cDestinatario.mensagem = msg.mensagem;
+    cDestinatario.nome = widget.contato.nome;
+    cDestinatario.caminhoFoto = widget.contato.urlImagem;
+    cDestinatario.tipoMensagem = msg.tipo;
+    cDestinatario.salvar();
   }
 
   _salvarMensagem(
