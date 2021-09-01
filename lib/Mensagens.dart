@@ -44,6 +44,7 @@ class _MensagensState extends State<Mensagens> {
             child: Padding(
               padding: EdgeInsets.only(right: 8),
               child: TextField(
+                cursorColor: Color(0xff075E54),
                 controller: _controllerMensagem,
                 autofocus: true,
                 keyboardType: TextInputType.text,
@@ -55,6 +56,7 @@ class _MensagensState extends State<Mensagens> {
                   fillColor: Colors.white,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(32),
+                    borderSide: BorderSide.none,
                   ),
                   prefixIcon: IconButton(
                     onPressed: () {
@@ -82,6 +84,7 @@ class _MensagensState extends State<Mensagens> {
                       );
                     },
                     icon: Icon(Icons.camera_alt),
+                    color: Color(0xff075E54),
                   ),
                 ),
               ),

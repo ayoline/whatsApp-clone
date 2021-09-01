@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:whatsapp/model/Conversa.dart';
+import 'package:whatsapp/model/Usuario.dart';
+import '../RouteGenerator.dart';
 
 class AbaConversas extends StatefulWidget {
   const AbaConversas({Key? key}) : super(key: key);
@@ -29,6 +31,12 @@ class _AbaConversasState extends State<AbaConversas> {
         "https://firebasestorage.googleapis.com/v0/b/velvety-decoder-312222.appspot.com/o/perfil%2Fperfil2.jpg?alt=media&token=2be22532-9972-4b52-be32-c8b530c136eb";
 
     _listaConversas!.add(conversa);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _controller.close();
   }
 
   @override
@@ -77,8 +85,19 @@ class _AbaConversasState extends State<AbaConversas> {
                   String tipo = item["tipoMensagem"];
                   String mensagem = item["mensagem"];
                   String nome = item["nome"];
+                  String idDestinatario = item["idDestinatario"];
+
+                  Usuario usuario = Usuario();
+                  usuario.nome = nome;
+                  usuario.urlImagem = urlImagem;
+                  usuario.idUsuario = idDestinatario;
 
                   return ListTile(
+                    onTap: () {
+                      Navigator.pushNamed(
+                          context, RouteGenerator.ROTA_MENSAGENS,
+                          arguments: usuario);
+                    },
                     contentPadding: EdgeInsets.fromLTRB(16, 8, 16, 8),
                     leading: CircleAvatar(
                       maxRadius: 30,
