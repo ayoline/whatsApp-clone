@@ -323,6 +323,9 @@ class _MensagensState extends State<Mensagens> {
 
     // Salvar mensagem para o destinátario
     _salvarMensagem(_idUsuarioDestinatario!, _idUsuarioLogado!, mensagem);
+
+    // Salvar conversa
+    _salvarConversa(mensagem);
   }
 
   _recuperarDadosUsuario() async {
